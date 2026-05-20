@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caja POS - El Chaparral</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+
+    <header class="container">
+        <nav>
+            <ul>
+                <li><strong><i class="fa fa-futbol-o"></i> El Chaparral - POS</strong></li>
+            </ul>
+            <ul>
+                <li><small>Usuario: <b>Admin</b></small></li>
+                <li><a href="/" role="button" class="outline secondary">Cerrar Sesión</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <div class="grid">
+            
+            <section>
+                <article>
+                    <header>
+                        <label for="buscar">Buscador de Productos</label>
+                        <input type="search" id="buscar" name="buscar" placeholder="Escanea código de barras o escribe el nombre..." autofocus>
+                    </header>
+                    
+                    <h5>Productos Frecuentes</h5>
+                    <div class="grid">
+                        <button class="outline" onclick="agregarAlTicket('Agua San Mateo', 2.50)">Agua San Mateo</button>
+                        <button class="outline" onclick="agregarAlTicket('Gatorade', 4.00)">Gatorade</button>
+                        <button class="outline" onclick="agregarAlTicket('Alquiler Balón', 5.00)">Alquiler Balón</button>
+                    </div>
+                </article>
+            </section>
+
+            <section>
+                <article>
+                    <header>Ticket Actual</header>
+                    
+                    <table class="striped">
+                        <thead>
+                            <tr>
+                                <th>Cant.</th>
+                                <th>Producto</th>
+                                <th>Subtotal</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-ticket">
+                            <tr>
+                                <td colspan="4" class="text-center"><small><em>El ticket está vacío</em></small></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <footer>
+                        <div class="grid" style="align-items: center;">
+                            <h3 style="margin-bottom: 0;">Total: S/ <span id="gran-total">0.00</span></h3>
+                            <button id="btn-cobrar">Cobrar Ticket</button>
+                        </div>
+                    </footer>
+                </article>
+            </section>
+
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        // Aquí irá la lógica para agregar productos a la tabla
+        function agregarAlTicket(nombre, precio) {
+            console.log("Agregando:", nombre, precio);
+            // Pendiente: Construir la fila en la tabla y sumar el total
+        }
+    </script>
+</body>
+</html>
