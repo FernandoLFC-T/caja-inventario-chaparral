@@ -1,0 +1,99 @@
+/* Estilos generales de la tabla del ticket */
+.ticket-table th, 
+.ticket-table td { 
+    padding: 0.5rem; 
+    text-align: left; 
+}
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+
+/* Estilos para el buscador tipo supermercado (Autocomplete) */
+.search-container { 
+    position: relative; 
+}
+
+.dropdown-resultados {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.dropdown-item {
+    padding: 10px 15px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    color: #333;
+}
+
+.dropdown-item:last-child { border-bottom: none; }
+.dropdown-item:hover { 
+    background-color: #f0f8ff; 
+    color: #0172db; 
+    font-weight: bold; 
+}
+.precio-badge { 
+    color: #e74c3c; 
+    font-weight: bold; 
+}
+
+/* Controles de cantidad en el ticket */
+.control-cantidad {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.btn-cantidad {
+    padding: 0px 8px !important;
+    font-size: 1.2rem !important;
+    line-height: 1.2 !important;
+    height: auto !important;
+    margin: 0 !important;
+    width: auto !important;
+}
+
+.cant-numero {
+    display: inline-block;
+    min-width: 25px;
+    text-align: center;
+    font-weight: bold;
+}
+/* =========================================
+   TOAST NOTIFICATION (Universal)
+   ========================================= */
+#toast-notification {
+    position: fixed;
+    bottom: -100px; /* Oculto */
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    padding: 1rem 2.5rem;
+    border-radius: 50px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    font-size: 1.2rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    z-index: 2000;
+    transition: bottom 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+#toast-notification.mostrar {
+    bottom: 40px; 
+}
+
+/* Variantes de estado */
+.toast-exito { background-color: #2ecc71; box-shadow: 0 10px 25px rgba(46, 204, 113, 0.4); }
+.toast-error { background-color: #e74c3c; box-shadow: 0 10px 25px rgba(231, 76, 60, 0.4); }
+.toast-aviso { background-color: #f39c12; box-shadow: 0 10px 25px rgba(243, 156, 18, 0.4); }

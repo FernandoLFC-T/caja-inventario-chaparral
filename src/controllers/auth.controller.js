@@ -1,8 +1,9 @@
-// src/controllers/auth.controller.js
 const db = require('../config/database');
-const bcrypt = require('bcryptjs'); // Importamos la nueva librería
+const bcrypt = require('bcryptjs');
+
 const login = async (req, res) => {
     const { username, password } = req.body;
+
     try {
         const [rows] = await db.query('SELECT * FROM usuarios WHERE username = ?', [username]);
 
@@ -11,15 +12,12 @@ const login = async (req, res) => {
         }
 
         const usuario = rows[0];
-
-        // Comparamos la contraseña enviada con el HASH guardado en la base de datos
         const passwordValida = await bcrypt.compare(password, usuario.password_hash);
 
         if (!passwordValida) {
             return res.status(401).json({ message: 'Contraseña incorrecta' });
         }
 
-        // Si es correcta, damos acceso
         res.status(200).json({
             message: 'Login exitoso',
             user: {

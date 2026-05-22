@@ -6,79 +6,115 @@
     <title>Caja POS - El Chaparral</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/caja.css">
 </head>
 <body>
 
-    <header class="container">
+    <header class="container-fluid" style="border-bottom: 1px solid #ddd; padding-top: 1rem; padding-bottom: 1rem; margin-bottom: 2rem;">
         <nav>
             <ul>
-                <li><strong><i class="fa fa-futbol-o"></i> El Chaparral - POS</strong></li>
+                <li><strong><i class="fa fa-futbol-o"></i> El Chaparral - CAJA</strong></li>
             </ul>
             <ul>
-                <li><small>Usuario: <b>Admin</b></small></li>
-                <li><a href="/" role="button" class="outline secondary">Cerrar Sesión</a></li>
+                <li><a href="/inventario.html" class="secondary">Inventario Rápido</a></li>
+                <li><small>Usuario: <b>Cajero</b></small></li>
+                <li><a href="/" role="button" class="outline secondary">Salir</a></li>
             </ul>
         </nav>
     </header>
 
-    <main class="container">
+    <main class="container-fluid">
         <div class="grid">
             
             <section>
                 <article>
-                    <header>
-                        <label for="buscar">Buscador de Productos</label>
-                        <input type="search" id="buscar" name="buscar" placeholder="Escanea código de barras o escribe el nombre..." autofocus>
+                    <header class="search-container">
+                        <label for="buscar">Buscador / Pistola</label>
+                        <input type="search" id="buscar" name="buscar" placeholder="Escanea código o escribe nombre..." autocomplete="off">
+                        
+                        <div id="resultados-busqueda" class="dropdown-resultados"></div>
                     </header>
                     
-                    <h5>Productos Frecuentes</h5>
+                    <h5>Favoritos sin Código</h5>
                     <div class="grid">
+                        <button class="outline" onclick="agregarAlTicket('Alquiler Balón', 5.00)">Alquiler Balón</button>
                         <button class="outline" onclick="agregarAlTicket('Agua San Mateo', 2.50)">Agua San Mateo</button>
                         <button class="outline" onclick="agregarAlTicket('Gatorade', 4.00)">Gatorade</button>
-                        <button class="outline" onclick="agregarAlTicket('Alquiler Balón', 5.00)">Alquiler Balón</button>
                     </div>
                 </article>
             </section>
 
             <section>
                 <article>
-                    <header>Ticket Actual</header>
+                    <header style="background-color: #f8f9fa; color: #333;"><b>Ticket Actual</b></header>
                     
-                    <table class="striped">
+                    <table class="striped ticket-table">
                         <thead>
                             <tr>
                                 <th>Cant.</th>
                                 <th>Producto</th>
-                                <th>Subtotal</th>
-                                <th></th>
+                                <th>Precio</th>
+                                <th class="text-right">Subtotal</th>
                             </tr>
                         </thead>
                         <tbody id="lista-ticket">
-                            <tr>
-                                <td colspan="4" class="text-center"><small><em>El ticket está vacío</em></small></td>
-                            </tr>
-                        </tbody>
+                            </tbody>
                     </table>
 
-                    <footer>
+                    <footer style="margin-top: 1rem;">
                         <div class="grid" style="align-items: center;">
-                            <h3 style="margin-bottom: 0;">Total: S/ <span id="gran-total">0.00</span></h3>
-                            <button id="btn-cobrar">Cobrar Ticket</button>
+                            <h2 style="margin-bottom: 0; color: #2ecc71;">S/ <span id="gran-total">0.00</span></h2>
+                            <button id="btn-cobrar" class="contrast" style="font-size: 1.2rem; font-weight: bold;">COBRAR (F12)</button>
                         </div>
                     </footer>
                 </article>
             </section>
-
         </div>
-    </main>
+        <dialog id="modal-cobro">
+            <article style="max-width: 450px;">
+                <header>
+                    <a href="#close" aria-label="Close" class="close" onclick="cerrarModalCobro()"></a>
+                    <strong>Confirmar Pago</strong>
+                </header>
+                
+                <div class="text-center" style="margin-bottom: 1.5rem;">
+                    <p style="margin: 0; color: #666;">Total a cobrar:</p>
+                    <h2 style="color: #2ecc71; margin: 0; font-size: 3rem;">S/ <span id="modal-total">0.00</span></h2>
+                </div>
 
+                <div id="opciones-pago-rapido" class="grid">
+                    <button class="outline" onclick="procesarPago('Efectivo')"><i class="fa fa-money"></i> Pago Efec.</button>
+                    <button class="outline" style="color: #742384; border-color: #742384;" onclick="procesarPago('Yape')"><i class="fa fa-qrcode"></i> Pago YAPE</button>
+                </div>
+
+                <div style="margin-top: 1rem;">
+                    <button class="secondary" onclick="mostrarPagoCombinado()"><i class="fa fa-pie-chart"></i> Pago Combinado</button>
+                </div>
+
+                <div id="seccion-pago-combinado" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
+                    <div class="grid">
+                        <label>
+                            Efectivo (S/):
+                            <input type="number" id="monto-efectivo" step="0.10" min="0" placeholder="0.00" oninput="calcularVueltoCombinado()">
+                        </label>
+                        <label>
+                            YAPE (S/):
+                            <input type="number" id="monto-yape" step="0.10" min="0" placeholder="0.00" oninput="calcularVueltoCombinado()">
+                        </label>
+                    </div>
+                    
+                    <small id="alerta-combinado" style="font-weight: bold; display: block; margin-bottom: 1rem; text-align: center; font-size: 1.1rem;"></small>
+                    
+                    <button class="contrast" onclick="procesarPago('Combinado')">Registrar Pago Combinado</button>
+                </div>
+            </article>
+        </dialog>
+    </main>
+    <div id="toast-notification">
+        <i id="toast-icon" class="fa"></i> 
+        <span id="toast-mensaje">Mensaje aquí</span>
+    </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script>
-        // Aquí irá la lógica para agregar productos a la tabla
-        function agregarAlTicket(nombre, precio) {
-            console.log("Agregando:", nombre, precio);
-            // Pendiente: Construir la fila en la tabla y sumar el total
-        }
-    </script>
+    <script src="js/caja.js"></script>
 </body>
 </html>

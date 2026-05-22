@@ -1,4 +1,3 @@
-// src/public/js/script.js
 $(function() {
     let working = false;
 
@@ -11,7 +10,6 @@ $(function() {
         const $button = $form.find('button');
         const $state = $button.find('.state');
         
-        // Obtenemos las credenciales
         const username = $form.find('input[type="text"]').val();
         const password = $form.find('input[type="password"]').val();
 
@@ -28,19 +26,23 @@ $(function() {
             const data = await response.json();
 
             if (response.ok) {
-                // EXITO TOTAL
                 $button.removeClass('loading').addClass('ok');
                 $state.html('¡Bienvenido!');
                 $form.addClass('ok'); 
                 
-                // Redirección inmediata a la caja
-                window.location.href = "/caja.html";
+                // REDIRECCIÓN INTELIGENTE POR ROLES
+                if (data.user.rol_id === 1) {
+                    // Si es Admin (Rol 1), va al Dashboard
+                    window.location.href = "/dashboard.html";
+                } else {
+                    // Si es Cajero/Empleado (Rol 2 o 3), va directo a cobrar
+                    window.location.href = "/caja.html";
+                }
 
             } else {
-                // ERROR (Usuario no encontrado o clave incorrecta)
                 $button.removeClass('loading');
-                $state.html(data.message); // Muestra "Contraseña incorrecta"
-                $button.css('background-color', '#e74c3c'); // Botón rojo
+                $state.html(data.message);
+                $button.css('background-color', '#e74c3c');
                 
                 setTimeout(() => {
                     $button.css('background-color', '#2196F3');
