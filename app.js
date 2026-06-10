@@ -31,3 +31,7 @@ app.listen(PORT, () => {
 // En tu app.js, debajo de las rutas de auth:
 const productoRoutes = require('./src/routes/producto.routes');
 app.use('/api/productos', productoRoutes);
+const ventaRoutes = require('./src/routes/venta.routes');
+app.use('/api/ventas', ventaRoutes);
+const adminRoutes = require('./src/routes/admin.routes');
+app.use('/api/admin', adminRoutes);

@@ -6,13 +6,14 @@
     <title>Panel Admin - El Chaparral</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/caja.css">
 </head>
 <body>
 
     <header class="container-fluid" style="border-bottom: 1px solid #ddd; padding-top: 1rem; padding-bottom: 1rem; margin-bottom: 2rem;">
         <nav>
             <ul>
-                <li><strong><i class="fa fa-line-chart"></i> Panel de Administración</strong></li>
+                <li><strong><a href="/dashboard.html" style="color: inherit; text-decoration: none;"><i class="fa fa-line-chart"></i> Panel de Administración</a></strong></li>
             </ul>
             <ul>
                 <li><a href="/caja.html">Ir a Caja</a></li>
@@ -28,51 +29,247 @@
             <aside style="min-width: 200px;">
                 <nav>
                     <ul>
-                        <li><a href="#" class="primary"><strong>📊 Resumen de Ventas</strong></a></li>
-                        <li><a href="#" class="secondary">📦 Gestión de Inventario</a></li>
-                        <li><a href="#" class="secondary">👥 Usuarios y Cajeros</a></li>
-                        <li><a href="#" class="secondary">📋 Reporte Kardex</a></li>
+                        <li><a href="#" class="primary nav-link" data-target="resumen"><strong>🏠 Inicio (Resumen)</strong></a></li>
+                        <li><a href="#" class="secondary nav-link" data-target="inventario">📦 Gestión de Inventario</a></li>
+                        <li><a href="#" class="secondary nav-link" data-target="usuarios">👥 Usuarios y Cajeros</a></li>
+                        <li><a href="#" class="secondary nav-link" data-target="kardex">📋 Reporte Kardex</a></li>
                     </ul>
                 </nav>
             </aside>
 
             <section style="flex-grow: 1;">
-                <h3>Resumen del Día</h3>
                 
-                <div class="grid">
-                    <article style="background-color: #e3f2fd; border-left: 4px solid #2196f3;">
-                        <small>Ventas de Hoy</small>
-                        <h2>S/ 0.00</h2>
-                    </article>
-                    <article style="background-color: #e8f5e9; border-left: 4px solid #4caf50;">
-                        <small>Utilidad Estimada</small>
-                        <h2>S/ 0.00</h2>
-                    </article>
-                    <article style="background-color: #fff3e0; border-left: 4px solid #ff9800;">
-                        <small>Ticket Promedio</small>
-                        <h2>S/ 0.00</h2>
+                <!-- SECCIÓN RESUMEN -->
+                <div id="seccion-resumen" class="admin-seccion">
+                    <h3>Resumen del Día</h3>
+                    <div class="grid">
+                        <article style="background-color: #e3f2fd; border-left: 4px solid #2196f3;">
+                            <small>Ventas de Hoy</small>
+                            <h2 id="resumen-ventas">S/ 0.00</h2>
+                        </article>
+                        <article style="background-color: #e8f5e9; border-left: 4px solid #4caf50;">
+                            <small>Utilidad Estimada</small>
+                            <h2 id="resumen-utilidad">S/ 0.00</h2>
+                        </article>
+                        <article style="background-color: #fff3e0; border-left: 4px solid #ff9800;">
+                            <small>Ticket Promedio</small>
+                            <h2 id="resumen-ticket">S/ 0.00</h2>
+                        </article>
+                    </div>
+                    <article style="margin-top: 2rem;">
+                        <header>Últimas Ventas Registradas</header>
+                        <table class="striped">
+                            <thead>
+                                <tr>
+                                    <th>ID Venta</th>
+                                    <th>Cajero</th>
+                                    <th>Hora</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-ultimas-ventas">
+                                <tr><td colspan="4" class="text-center">Cargando...</td></tr>
+                            </tbody>
+                        </table>
                     </article>
                 </div>
-                <article style="margin-top: 2rem;">
-                    <header>Últimas Ventas Registradas</header>
-                    <table class="striped">
-                        <thead>
-                            <tr>
-                                <th>ID Venta</th>
-                                <th>Cajero</th>
-                                <th>Hora</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="4" class="text-center">No hay ventas registradas hoy.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </article>
+
+                <!-- SECCIÓN INVENTARIO -->
+                <div id="seccion-inventario" class="admin-seccion" style="display: none;">
+                    <div class="grid" style="align-items: center; margin-bottom: 1rem;">
+                        <h3>Gestión de Inventario</h3>
+                        <div style="text-align: right;">
+                            <button class="outline secondary" onclick="abrirModalIngresoStock()">+ Ingreso de Stock</button>
+                            <button class="outline" onclick="abrirModalProducto()">+ Nuevo Producto</button>
+                        </div>
+                    </div>
+                    <article>
+                        <table class="striped">
+                            <thead>
+                                <tr>
+                                    <th>Producto Base</th>
+                                    <th>Stock Actual</th>
+                                    <th>Presentación</th>
+                                    <th>Código Barras</th>
+                                    <th>Precio</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-inventario">
+                                <tr><td colspan="5" class="text-center">Cargando...</td></tr>
+                            </tbody>
+                        </table>
+                    </article>
+                </div>
+
+                <!-- SECCIÓN USUARIOS -->
+                <div id="seccion-usuarios" class="admin-seccion" style="display: none;">
+                    <div class="grid" style="align-items: center; margin-bottom: 1rem;">
+                        <h3>Usuarios y Cajeros</h3>
+                        <div style="text-align: right;">
+                            <button class="outline" onclick="abrirModalUsuario()">+ Nuevo Usuario</button>
+                        </div>
+                    </div>
+                    <article>
+                        <table class="striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Usuario</th>
+                                    <th>Rol</th>
+                                    <th>Estado</th>
+                                    <th>Registrado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-usuarios">
+                                <tr><td colspan="5" class="text-center">Cargando...</td></tr>
+                            </tbody>
+                        </table>
+                    </article>
+                </div>
+
+                <!-- SECCIÓN KARDEX -->
+                <div id="seccion-kardex" class="admin-seccion" style="display: none;">
+                    <h3>Reporte Kardex (Últimos Movimientos)</h3>
+                    <article>
+                        <table class="striped">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Producto</th>
+                                    <th>Movimiento</th>
+                                    <th>Motivo</th>
+                                    <th>Cantidad</th>
+                                    <th>Usuario</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-kardex">
+                                <tr><td colspan="6" class="text-center">Cargando...</td></tr>
+                            </tbody>
+                        </table>
+                    </article>
+                </div>
+
             </section>  
         </div>
     </main>
+
+    <!-- Modales -->
+    <dialog id="modal-ingreso-stock">
+        <article style="max-width: 800px; width: 100%;">
+            <header>
+                <a href="#close" aria-label="Close" class="close" onclick="cerrarModalIngresoStock()"></a>
+                Ingreso Rápido de Stock
+            </header>
+            
+            <div style="position: relative; margin-bottom: 1rem;">
+                <label for="buscar-ingreso">Buscar Producto</label>
+                <input type="search" id="buscar-ingreso" placeholder="Escribe el nombre del producto o usa la pistola..." autocomplete="off">
+                <div id="resultados-ingreso" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
+            </div>
+
+            <table class="striped">
+                <thead>
+                    <tr>
+                        <th>Producto Base</th>
+                        <th style="width: 15%;">Stock Actual</th>
+                        <th style="width: 25%;">Cantidad a Ingresar</th>
+                        <th style="width: 10%;"></th>
+                    </tr>
+                </thead>
+                <tbody id="lista-ingreso">
+                    <tr><td colspan="4" class="text-center"><small>Busca productos para agregar a la lista de ingreso</small></td></tr>
+                </tbody>
+            </table>
+
+            <footer style="margin-top: 1rem; text-align: right;">
+                <button class="contrast" onclick="guardarIngresoStock()" id="btn-guardar-ingreso">Guardar Ingreso de Stock</button>
+            </footer>
+        </article>
+    </dialog>
+    <dialog id="modal-nuevo-producto">
+        <article>
+            <header>
+                <a href="#close" aria-label="Close" class="close" onclick="cerrarModalProducto()"></a>
+                Registrar Nuevo Producto
+            </header>
+            <form id="form-nuevo-producto">
+                <div class="grid">
+                    <div>
+                        <label for="nombre_base">Nombre (Base)</label>
+                        <input type="text" id="nombre_base" name="nombre_base" required placeholder="Ej: Cerveza Pilsen">
+                    </div>
+                    <div>
+                        <label for="descripcion">Descripción</label>
+                        <input type="text" id="descripcion" name="descripcion" placeholder="Opcional">
+                    </div>
+                </div>
+                <div class="grid">
+                    <div>
+                        <label for="stock_inicial">Stock Inicial</label>
+                        <input type="number" id="stock_inicial" name="stock_inicial" value="0" min="0">
+                    </div>
+                    <div>
+                        <label for="stock_minimo">Stock Mínimo</label>
+                        <input type="number" id="stock_minimo" name="stock_minimo" value="5" min="0">
+                    </div>
+                </div>
+                <hr>
+                <div class="grid">
+                    <div>
+                        <label for="nombre_presentacion">Presentación</label>
+                        <input type="text" id="nombre_presentacion" name="nombre_presentacion" required placeholder="Ej: Botella Individual">
+                    </div>
+                    <div>
+                        <label for="codigo_barras">Código de Barras</label>
+                        <input type="text" id="codigo_barras" name="codigo_barras" required>
+                    </div>
+                </div>
+                <div class="grid">
+                    <div>
+                        <label for="costo">Costo de Compra (S/)</label>
+                        <input type="number" id="costo" name="costo" step="0.01" required>
+                    </div>
+                    <div>
+                        <label for="precio_venta">Precio Venta (S/)</label>
+                        <input type="number" id="precio_venta" name="precio_venta" step="0.01" required>
+                    </div>
+                </div>
+                <button type="submit" id="btn-guardar-producto">Guardar Producto</button>
+            </form>
+        </article>
+    </dialog>
+
+    <dialog id="modal-nuevo-usuario">
+        <article>
+            <header>
+                <a href="#close" aria-label="Close" class="close" onclick="cerrarModalUsuario()"></a>
+                Crear Nuevo Usuario
+            </header>
+            <form id="form-nuevo-usuario">
+                <label for="username">Usuario (Username)</label>
+                <input type="text" id="username" name="username" required>
+                
+                <label for="password">Contraseña</label>
+                <input type="password" id="password" name="password" required>
+                
+                <label for="rol_id">Rol del Usuario</label>
+                <select id="rol_id" name="rol_id" required>
+                    <option value="3" selected>Cajero</option>
+                    <option value="2">Supervisor</option>
+                    <option value="1">Administrador</option>
+                </select>
+                
+                <button type="submit" id="btn-guardar-usuario" style="margin-top: 1rem;">Crear Usuario</button>
+            </form>
+        </article>
+    </dialog>
+
+    <div id="toast-notification">
+        <i id="toast-icon" class="fa"></i> 
+        <span id="toast-mensaje">Mensaje aquí</span>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="js/dashboard.js"></script>
 </body>
 </html>

@@ -6,6 +6,8 @@ $(document).ready(function() {
     const $resultados = $('#resultados-busqueda');
     let timeoutBusqueda;
 
+    cargarTendencias();
+
     $buscarInput.focus();
 
     // Si el usuario hace clic fuera de un input, devolver el focus a la pistola
@@ -51,6 +53,31 @@ $(document).ready(function() {
 });
 
 // --- Lógica del Backend ---
+
+async function cargarTendencias() {
+    try {
+        const response = await fetch('/api/productos/tendencias');
+        if (!response.ok) return;
+
+        const tendencias = await response.json();
+        const $contenedor = $('#contenedor-tendencias');
+        $contenedor.empty();
+
+        if (tendencias.length === 0) {
+            $contenedor.append('<small><em>No hay tendencias disponibles</em></small>');
+            return;
+        }
+
+        tendencias.forEach(prod => {
+            $contenedor.append(`
+                <button class="outline" onclick="agregarAlTicket(${prod.presentacion_id}, '${prod.nombre_presentacion}', ${prod.precio_venta})">${prod.nombre_presentacion}</button>
+            `);
+        });
+
+    } catch (error) {
+        console.error("Error cargando tendencias:", error);
+    }
+}
 
 async function buscarYAgregarProducto(codigo) {
     try {
@@ -181,12 +208,9 @@ function renderizarTicket() {
     $('#gran-total').text(granTotal.toFixed(2));
 }
 
-window.agregarAlTicket = function(nombre, precio) {
-    // Creamos un ID ficticio basado en el nombre para que los botones +/- funcionen también con los favoritos
-    const idFicticio = nombre.length; 
-    
+window.agregarAlTicket = function(id, nombre, precio) {
     agregarFilaTicket({
-        presentacion_id: idFicticio, 
+        presentacion_id: id, 
         nombre_presentacion: nombre,
         precio_venta: precio
     });
@@ -255,7 +279,7 @@ window.calcularVueltoCombinado = function() {
         $alerta.css('color', '#2ecc71'); // Verde
     }
 };
-window.procesarPago = function(metodo) {
+window.procesarPago = async function(metodo) {
     let pagadoEfectivo = 0;
     let pagadoYape = 0;
 
@@ -268,29 +292,49 @@ window.procesarPago = function(metodo) {
         pagadoYape = parseFloat($('#monto-yape').val()) || 0;
 
         if ((pagadoEfectivo + pagadoYape) < granTotal) {
-            // Reemplazo del alert() feo por nuestro Toast de error
             mostrarToast("El monto ingresado no cubre el total.", "error");
             return;
         }
     }
 
-    // ¡Aquí simularemos que guardamos en la base de datos!
-    console.log("Enviando al backend:", {
-        ticket: ticket,
-        total: granTotal,
-        metodo: metodo,
-        pago_efectivo: pagadoEfectivo,
-        pago_yape: pagadoYape
-    });
+    try {
+        const payload = {
+            ticket: ticket,
+            total: granTotal,
+            metodo: metodo,
+            pago_efectivo: pagadoEfectivo,
+            pago_yape: pagadoYape,
+            usuario_id: 2 // Hardcode temporal del usuario
+        };
 
-    // 1. Limpiar toda la interfaz para el siguiente cliente
-    ticket = [];
-    granTotal = 0;
-    actualizarTotalYRenderizar();
-    cerrarModalCobro(); // Esto cierra el modal y devuelve el cursor a la pistola
+        const response = await fetch('/api/ventas', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
 
-    // 2. Mostrar nuestra alerta universal de éxito (Toast)
-    mostrarToast("¡Venta Registrada con Éxito!", "exito");
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Error al guardar la venta');
+        }
+
+        const data = await response.json();
+
+        // 1. Limpiar toda la interfaz para el siguiente cliente
+        ticket = [];
+        granTotal = 0;
+        actualizarTotalYRenderizar();
+        cerrarModalCobro(); // Esto cierra el modal y devuelve el cursor a la pistola
+
+        // 2. Mostrar nuestra alerta universal de éxito (Toast)
+        mostrarToast("¡Venta Registrada con Éxito!", "exito");
+        
+    } catch (error) {
+        console.error("Error procesando pago:", error);
+        mostrarToast(error.message, "error");
+    }
 };
 window.mostrarToast = function(mensaje, tipo = 'exito') {
     const $toast = $('#toast-notification');
@@ -325,3 +369,41 @@ window.mostrarToast = function(mensaje, tipo = 'exito') {
         $toast.removeClass('mostrar');
     }, 3000);
 };
+
+// ==========================================
+// MÓDULO DE ESCÁNER POR CÁMARA (WEBCAM)
+// ==========================================
+
+let html5QrcodeScanner = null;
+
+window.abrirModalCamara = function() {
+    $('#modal-camara').attr('open', true);
+    if (!html5QrcodeScanner) {
+        html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader",
+            { fps: 10, qrbox: {width: 250, height: 150} },
+            /* verbose= */ false);
+    }
+    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+};
+
+window.cerrarModalCamara = function() {
+    $('#modal-camara').removeAttr('open');
+    if (html5QrcodeScanner) {
+        html5QrcodeScanner.clear().catch(error => {
+            console.error("Failed to clear html5QrcodeScanner. ", error);
+        });
+    }
+    $('#buscar').focus();
+};
+
+function onScanSuccess(decodedText, decodedResult) {
+    // Escaneo exitoso: cerramos la cámara y buscamos el producto
+    cerrarModalCamara();
+    $('#buscar').val(decodedText);
+    buscarYAgregarProducto(decodedText);
+}
+
+function onScanFailure(error) {
+    // Se ignora el fallo porque esto ocurre constantemente en cada frame que la cámara no detecta un código
+}
