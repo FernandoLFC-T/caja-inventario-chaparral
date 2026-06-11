@@ -6,6 +6,7 @@
     <title>Panel Admin - El Chaparral</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="css/caja.css">
 </head>
 <body>
@@ -41,7 +42,12 @@
                 
                 <!-- SECCIÓN RESUMEN -->
                 <div id="seccion-resumen" class="admin-seccion">
-                    <h3>Resumen del Día</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="margin-bottom: 0;">Resumen del Día</h3>
+                        <div>
+                            <input type="text" id="filtro-fecha" placeholder="Seleccionar fecha..." style="width: 220px; margin-bottom: 0; background-color: white; color: black; border: 1px solid #ccc; padding: 0.5rem; border-radius: 4px;" readonly>
+                        </div>
+                    </div>
                     <div class="grid">
                         <article style="background-color: #e3f2fd; border-left: 4px solid #2196f3;">
                             <small>Ventas de Hoy</small>
@@ -71,6 +77,13 @@
                                 <tr><td colspan="4" class="text-center">Cargando...</td></tr>
                             </tbody>
                         </table>
+                    </article>
+                    
+                    <article style="margin-top: 2rem;">
+                        <header>Ventas de los últimos 7 días</header>
+                        <div style="padding: 1rem;">
+                            <canvas id="grafico-ventas" height="100"></canvas>
+                        </div>
                     </article>
                 </div>
 
@@ -270,6 +283,9 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/es.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="js/dashboard.js"></script>
 </body>
 </html>

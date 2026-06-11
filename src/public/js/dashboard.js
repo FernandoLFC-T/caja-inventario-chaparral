@@ -1,6 +1,28 @@
-$(document).ready(function() {
+let ventasChart;
+
+$(document).ready(async function() {
     // Inicialización
     cargarResumen();
+    cargarGraficoVentas();
+
+    try {
+        const res = await fetch('/api/admin/dias-con-ventas');
+        if (res.ok) {
+            const diasConVentas = await res.json();
+            
+            flatpickr("#filtro-fecha", {
+                locale: "es",
+                dateFormat: "Y-m-d",
+                enable: diasConVentas.length > 0 ? diasConVentas : [new Date()],
+                defaultDate: new Date(),
+                onChange: function(selectedDates, dateStr, instance) {
+                    cargarResumen(dateStr);
+                }
+            });
+        }
+    } catch(e) {
+        console.error("Error al cargar dias con ventas", e);
+    }
 
     // Navegación SPA
     $('.nav-link').on('click', function(e) {
@@ -25,9 +47,10 @@ $(document).ready(function() {
 
 // --- Funciones de Carga de Datos ---
 
-async function cargarResumen() {
+async function cargarResumen(fecha = null) {
     try {
-        const res = await fetch('/api/admin/resumen');
+        const url = fecha ? `/api/admin/resumen?fecha=${fecha}` : '/api/admin/resumen';
+        const res = await fetch(url);
         if (!res.ok) throw new Error('Error al cargar resumen');
         const data = await res.json();
 
@@ -39,15 +62,15 @@ async function cargarResumen() {
         $tbody.empty();
 
         if (data.ultimas_ventas.length === 0) {
-            $tbody.append('<tr><td colspan="4" class="text-center">No hay ventas registradas hoy.</td></tr>');
+            $tbody.append('<tr><td colspan="4" class="text-center">No hay ventas registradas en esta fecha.</td></tr>');
         } else {
             data.ultimas_ventas.forEach(v => {
-                const fecha = new Date(v.fecha).toLocaleTimeString();
+                const fechaVenta = new Date(v.fecha).toLocaleTimeString();
                 $tbody.append(`
                     <tr>
                         <td>#${v.id}</td>
                         <td>${v.cajero}</td>
-                        <td>${fecha}</td>
+                        <td>${fechaVenta}</td>
                         <td><strong>S/ ${parseFloat(v.total).toFixed(2)}</strong></td>
                     </tr>
                 `);
@@ -56,6 +79,47 @@ async function cargarResumen() {
     } catch (error) {
         console.error(error);
         $('#tabla-ultimas-ventas').html('<tr><td colspan="4" class="text-center" style="color:red;">Error de conexión</td></tr>');
+    }
+}
+
+async function cargarGraficoVentas() {
+    try {
+        const res = await fetch('/api/admin/ventas-chart');
+        if (!res.ok) throw new Error('Error al cargar grafico');
+        const data = await res.json();
+        
+        const labels = data.map(d => d.fecha);
+        const valores = data.map(d => d.total);
+
+        const ctx = document.getElementById('grafico-ventas').getContext('2d');
+        if (ventasChart) {
+            ventasChart.destroy();
+        }
+
+        ventasChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Ventas (S/)',
+                    data: valores,
+                    backgroundColor: 'rgba(33, 150, 243, 0.5)',
+                    borderColor: 'rgba(33, 150, 243, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error(error);
     }
 }
 

@@ -3,24 +3,34 @@ const db = require('../config/database');
 
 const getResumenVentas = async (req, res) => {
     try {
-        // Obtenemos los totales del día de hoy
+        const fechaParam = req.query.fecha;
+        const filtroFecha = fechaParam ? `DATE(fecha) = ?` : `DATE(fecha) = CURDATE()`;
+        const paramsTotales = fechaParam ? [fechaParam] : [];
+
+        // Obtenemos los totales del día filtrado
         const [totales] = await db.query(`
             SELECT 
                 COUNT(*) as cantidad_ventas,
                 IFNULL(SUM(total), 0) as total_ventas,
                 IFNULL(SUM(utilidad_total), 0) as utilidad_estimada
             FROM ventas
-            WHERE DATE(fecha) = CURDATE()
-        `);
+            WHERE ${filtroFecha}
+        `, paramsTotales);
 
         // Obtenemos las últimas 10 ventas
-        const [ultimasVentas] = await db.query(`
+        let queryVentas = `
             SELECT v.id, v.total, v.fecha, u.username as cajero
             FROM ventas v
             JOIN usuarios u ON v.usuario_id = u.id
-            ORDER BY v.fecha DESC
-            LIMIT 10
-        `);
+        `;
+        const paramsVentas = [];
+        if (fechaParam) {
+            queryVentas += ` WHERE DATE(v.fecha) = ?`;
+            paramsVentas.push(fechaParam);
+        }
+        queryVentas += ` ORDER BY v.fecha DESC LIMIT 10`;
+
+        const [ultimasVentas] = await db.query(queryVentas, paramsVentas);
 
         const data = totales[0];
         const ticketPromedio = data.cantidad_ventas > 0 ? (data.total_ventas / data.cantidad_ventas) : 0;
@@ -88,6 +98,37 @@ const getKardex = async (req, res) => {
     } catch (error) {
         console.error('Error en getKardex:', error);
         res.status(500).json({ message: 'Error al obtener kardex' });
+    }
+};
+
+const getDiasConVentas = async (req, res) => {
+    try {
+        const [rows] = await db.query(`
+            SELECT DISTINCT DATE_FORMAT(fecha, '%Y-%m-%d') as fecha
+            FROM ventas
+            ORDER BY fecha ASC
+        `);
+        const dias = rows.map(r => r.fecha);
+        res.status(200).json(dias);
+    } catch (error) {
+        console.error('Error en getDiasConVentas:', error);
+        res.status(500).json({ message: 'Error al obtener días con ventas' });
+    }
+};
+
+const getVentasChart = async (req, res) => {
+    try {
+        const [rows] = await db.query(`
+            SELECT DATE_FORMAT(fecha, '%Y-%m-%d') as fecha, SUM(total) as total
+            FROM ventas
+            WHERE fecha >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+            GROUP BY DATE(fecha)
+            ORDER BY fecha ASC
+        `);
+        res.status(200).json(rows);
+    } catch (error) {
+        console.error('Error en getVentasChart:', error);
+        res.status(500).json({ message: 'Error al obtener datos para el gráfico' });
     }
 };
 
@@ -214,5 +255,7 @@ module.exports = {
     getKardex,
     crearUsuario,
     crearProducto,
-    registrarIngresoStock
+    registrarIngresoStock,
+    getDiasConVentas,
+    getVentasChart
 };
